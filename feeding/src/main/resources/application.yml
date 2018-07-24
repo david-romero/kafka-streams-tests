@@ -1,0 +1,28 @@
+spring:
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+
+server:
+  port: 0
+  
+
+kafka:
+  bootstrapAddress: kafka:9092
+  groupId:
+    key: groupId
+    defaultValue: boot
+  topic:
+    name: menus
+    boot: boot.t
+  
+spring.mail:
+  subject: Weekly Menu
+  from: weeklyMenu@recipes.com
+  host: smtp.gmail.com
+  port: 587
+  username: ${EMAIL_USERNAME}
+  password: ${EMAIL_PASSWORD}
+  properties.mail.smtp:
+    auth: true
+    starttls.enable: true

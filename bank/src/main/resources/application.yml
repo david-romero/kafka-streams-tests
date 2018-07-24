@@ -1,0 +1,17 @@
+spring:
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+
+server:
+  port: 0
+
+kafka:
+  bootstrapAddress: kafka:9092
+  groupId:
+    key: groupId
+    defaultValue: boot
+  balance.topic:
+    input.name: transactions
+    output.name: balances
+    

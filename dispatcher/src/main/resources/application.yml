@@ -1,0 +1,16 @@
+spring:
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+
+server:
+  port: 0
+
+kafka:
+  bootstrapAddress: kafka:9092
+  groupId:
+    key: groupId
+    defaultValue: boot
+  topic:
+    name: dispatcher
+    boot: boot.t
