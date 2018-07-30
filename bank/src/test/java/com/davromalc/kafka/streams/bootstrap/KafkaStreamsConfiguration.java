@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.Topology;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -79,7 +79,7 @@ public class KafkaStreamsConfiguration {
 	}
 
 	@Bean
-	public KStream<String, Transaction> bankKStreamBuilder(BankBalanceKStreamBuilder streamBuilder)
+	public Topology bankKStreamBuilder(BankBalanceKStreamBuilder streamBuilder)
 			throws ReflectionException {
 		return streamBuilder.build();
 	}

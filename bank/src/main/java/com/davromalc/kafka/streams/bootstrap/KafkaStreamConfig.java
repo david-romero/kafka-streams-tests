@@ -6,7 +6,7 @@ import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.Topology;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,6 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 
 import com.davromalc.kafka.streams.logging.ReflectionException;
-import com.davromalc.kafka.streams.model.Transaction;
 
 @Configuration
 @EnableKafkaStreams
@@ -42,7 +41,7 @@ public class KafkaStreamConfig {
 	}
 
 	@Bean
-	public KStream<String, Transaction> kStream(final BankBalanceKStreamBuilder kStreamBuilder)
+	public Topology kStream(final BankBalanceKStreamBuilder kStreamBuilder)
 			throws ReflectionException {
 		return kStreamBuilder.build();
 	}

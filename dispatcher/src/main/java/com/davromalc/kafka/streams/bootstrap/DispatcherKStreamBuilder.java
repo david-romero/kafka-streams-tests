@@ -27,6 +27,9 @@ public class DispatcherKStreamBuilder {
 	final StreamsBuilder streamBuilder;
 	final String topic;
 	final Map<String, String> symbolTopicMap;
+	
+	final Function<String, KafkaPredicate> symbolToKafkaPredicateFuncition
+	= (symbol -> new KafkaPredicate((k, v) -> v.substring(15, 20).equals(symbol)));
 
 	@Autowired
 	public DispatcherKStreamBuilder(StreamsBuilder streamBuilder,
@@ -41,7 +44,7 @@ public class DispatcherKStreamBuilder {
 
 		final KStream<String, String>[] streams = stream.filter(this::hasLengthUpper20)
 				.mapValues(s -> s.replace("ñ", "n")).mapValues(s -> s.startsWith("\"") ? s.substring(1) : s)
-				.branch(createPredicates());
+				.branch(createKafkaPredicates());
 
 		final List<String> targetTopics = new ArrayList<>(symbolTopicMap.values());
 		for (int streamIndex = 0; streamIndex < symbolTopicMap.size(); streamIndex++) {
@@ -58,24 +61,17 @@ public class DispatcherKStreamBuilder {
 		return StringUtils.hasLength(value) && value.length() > 20;
 	}
 
-	private CustomPredicate[] createPredicates() {
-		List<CustomPredicate> predicates = symbolTopicMap.keySet().stream().map(new SymbolFilterFunction())
+	private KafkaPredicate[] createKafkaPredicates() {
+		final List<KafkaPredicate> predicates = symbolTopicMap.keySet().stream().map(symbolToKafkaPredicateFuncition)
 				.collect(Collectors.toList());
-		CustomPredicate[] array = new CustomPredicate[predicates.size()];
+		KafkaPredicate[] array = new KafkaPredicate[predicates.size()];
 		return predicates.toArray(array);
 	}
+	
 
-	class SymbolFilterFunction implements Function<String, CustomPredicate> {
-
-		@Override
-		public CustomPredicate apply(final String symbol) {
-			return new CustomPredicate((k, v) -> v.substring(15, 20).equals(symbol));
-		}
-
-	}
 
 	@RequiredArgsConstructor
-	class CustomPredicate implements Predicate<String, String> {
+	class KafkaPredicate implements Predicate<String, String> {
 
 		final BiPredicate<String, String> predicate;
 

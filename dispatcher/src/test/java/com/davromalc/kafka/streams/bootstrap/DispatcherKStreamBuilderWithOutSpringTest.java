@@ -7,7 +7,7 @@ import static com.davromalc.kafka.streams.model.Accounts.TOPIC_CUSTOMER2;
 import static com.davromalc.kafka.streams.model.Accounts.TOPIC_CUSTOMER3;
 import static com.davromalc.kafka.streams.model.Accounts.TOPIC_CUSTOMER4;
 import static com.davromalc.kafka.streams.model.Accounts.TOPIC_CUSTOMER5;
-import static com.davromalc.kafka.streams.model.Accounts.accounts;
+import static java.util.Arrays.stream;
 
 import java.util.List;
 import java.util.Properties;
@@ -29,6 +29,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.davromalc.kafka.streams.logging.ReflectionException;
+import com.davromalc.kafka.streams.model.Accounts;
 
 
 public class DispatcherKStreamBuilderWithOutSpringTest {
@@ -52,25 +53,31 @@ public class DispatcherKStreamBuilderWithOutSpringTest {
 
 
 	@Test
-	@DisplayName("Given An Only Customer and Many Messages When Stream Is Invoked Then a Single Email Must Be Sent")
-	public void givenAOnlyCustomerAndManyMessagesWhenStreamIsInvokedThenASingleEmailMustBeSent() throws InterruptedException {
-		for ( String account : accounts ) {
-			sendMessage(account);
-		}
+	@DisplayName("Given Ten Codes And A Map With Customer Codes And Target Topics When The Stream Receives Ten Codes Then Every Target Topic Should Receive Its PurchaseCode")
+	public void givenTenCodesAndAMapWithCustomerCodeAndTargetTopicWhenTheStreamReceivesTenCodeThenEveryTargetTopicShouldReceiveItsPurchaseCode() throws InterruptedException {
+		// given
+		String[] purchaseCodes = Accounts.accounts;
+		// purchase code format: salkdjaslkdajsdlajsdklajsdaklsjdfyhbeubyhquy12345kdalsdjaksldjasldjhvbfudybdudfubdf. ascii(0-15) + Customer_Code(15-20) + ascii(20+)
+		// purchases code and topic map format: { "12345" : "TOPIC_CUSTOMER_1" , "54321" : "TOPIC_CUSTOMER_2" }
+		
+		// when
+		stream(purchaseCodes).forEach(this::sendMessage);
 
-		
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER1), null, accounts[0]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER2), null, accounts[1]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER3), null, accounts[2]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER3), null, accounts[3]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER4), null, accounts[4]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER5), null, accounts[5]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER1), null, accounts[6]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER2), null, accounts[7]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER1), null, accounts[8]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER4), null, accounts[9]);
-		OutputVerifier.compareKeyValue(readMessage(TOPIC_CUSTOMER5), null, accounts[10]);
-		
+		// then
+		assertCodeIsInTopic(purchaseCodes[0], TOPIC_CUSTOMER1);
+		assertCodeIsInTopic(purchaseCodes[1], TOPIC_CUSTOMER2);
+		assertCodeIsInTopic(purchaseCodes[2], TOPIC_CUSTOMER3);
+		assertCodeIsInTopic(purchaseCodes[3], TOPIC_CUSTOMER3);
+		assertCodeIsInTopic(purchaseCodes[4], TOPIC_CUSTOMER4);
+		assertCodeIsInTopic(purchaseCodes[5], TOPIC_CUSTOMER5);
+		assertCodeIsInTopic(purchaseCodes[6], TOPIC_CUSTOMER1);
+		assertCodeIsInTopic(purchaseCodes[7], TOPIC_CUSTOMER2);
+		assertCodeIsInTopic(purchaseCodes[8], TOPIC_CUSTOMER1);
+		assertCodeIsInTopic(purchaseCodes[9], TOPIC_CUSTOMER4);
+	}
+	
+	private void assertCodeIsInTopic(String code, String topic) {
+		OutputVerifier.compareKeyValue(readMessage(topic), null, code);
 	}
 	
 	
@@ -79,12 +86,10 @@ public class DispatcherKStreamBuilderWithOutSpringTest {
 		testDriver.close();
 	}
 	
-	private void sendMessage(String message) {
-		
-		String key = null;
-		KeyValue<String,String> kv = new KeyValue<String, String>(key, message);
-		List<KeyValue<String,String>> keyValues = java.util.Arrays.asList(kv);
-		List<ConsumerRecord<byte[], byte[]>> create = factory.create(keyValues);
+	private void sendMessage(final String message) {
+		final KeyValue<String,String> kv = new KeyValue<String, String>(null, message);
+		final List<KeyValue<String,String>> keyValues = java.util.Arrays.asList(kv);
+		final List<ConsumerRecord<byte[], byte[]>> create = factory.create(keyValues);
 		testDriver.pipeInput(create);
 	}
 	

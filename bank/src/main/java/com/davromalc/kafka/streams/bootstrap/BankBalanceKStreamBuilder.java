@@ -7,6 +7,7 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
@@ -44,7 +45,7 @@ public class BankBalanceKStreamBuilder {
 		this.outputTopic = outputTopic;
 	}
 
-	public KStream<String, Transaction> build() throws ReflectionException {
+	public Topology build() throws ReflectionException {
 		final KStream<String, Transaction> stream = streamBuilder.stream(inputTopic);
 
 		KeyValueBytesStoreSupplier supplier = new RocksDbKeyValueBytesStoreSupplier("balance-store");
@@ -59,7 +60,7 @@ public class BankBalanceKStreamBuilder {
 		
 		stream.print(new LogPrinted<>());
 
-		return stream;
+		return streamBuilder.build();
 	}
 
 	Balance applyTransaction(final Balance balance, final Transaction transaction) {
